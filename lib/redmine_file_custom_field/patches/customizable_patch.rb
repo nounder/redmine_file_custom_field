@@ -27,14 +27,24 @@ module RedmineFileCustomField
             key = custom_field_value.custom_field_id.to_s
             if values.has_key?(key)
               value = values[key]
+
               if value.is_a?(Array)
                 value = value.reject(&:blank?).map(&:to_s).uniq
                 if value.empty?
                   value << ''
                 end
-              elsif !value.is_a?(ActionDispatch::Http::UploadedFile)
+              elsif value.is_a?(ActionDispatch::Http::UploadedFile)
+                attachment = Attachment.new(:file => value.tempfile)
+                attachment.author = User.current
+                attachment.filename = value.original_filename
+                attachment.content_type = value.content_type
+                attachment.save
+
+                value = attachment
+              else
                 value = value.to_s
               end
+
               custom_field_value.value = value
             end
           end

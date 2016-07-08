@@ -25,8 +25,8 @@ module RedmineFileCustomField
         end
 
         def file_value(value)
-          if value.is_a?(ActionDispatch::Http::UploadedFile)
-            value.original_filename
+          if value.is_a?(Attachment)
+            value.filename
           else
             Attachment.find_by_id(value).try(:filename)
           end

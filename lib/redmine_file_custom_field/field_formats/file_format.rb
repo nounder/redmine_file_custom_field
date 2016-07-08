@@ -6,11 +6,20 @@ module RedmineFileCustomField
       add 'file'
 
       def edit_tag(view, tag_id, tag_name, custom_field_value, options={})
+        if custom_field_value.value.is_a?(Attachment)
+          value = custom_field_value.value.id
+          attachment = custom_field_value.value
+        else
+          value = custom_field_value.value
+          custom_value = CustomValue.find_by_customized_id_and_custom_field_id(custom_field_value.customized.id, custom_field_value.custom_field.id)
+          attachment = custom_value ? custom_value.attachments.find_by_id(value) : nil
+        end
+
         view.content_tag("span") do
-          (view.hidden_field_tag(tag_name, custom_field_value.value, options.merge(:id => tag_id)) +
+          (view.hidden_field_tag(tag_name, value, options.merge(:id => tag_id)) +
           view.file_field_tag(tag_name, options.merge(:id => tag_id)) +
-          if (custom_value = CustomValue.find_by_customized_id_and_custom_field_id(custom_field_value.customized.id, custom_field_value.custom_field.id)) && (attachment = custom_value.attachments.find_by_id(custom_field_value.value))
-            view.content_tag("span", id: "tag_id") do
+          if (attachment)
+            view.content_tag("span", id: "tag_id", style: 'display: block;') do
               view.content_tag("span") do
                 attachment.filename
               end +
@@ -19,7 +28,6 @@ module RedmineFileCustomField
           else
             ""
           end)
-
         end
       end
 
