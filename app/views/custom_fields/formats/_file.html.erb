@@ -2,3 +2,55 @@
   <%= f.text_area :possible_values, :value => @custom_field.possible_values.to_a.join("\n"), :rows => 15 %>
   <em class="info"><%= l(:text_custom_field_possible_values_info) %></em>
 </p>
+
+<script type="text/javascript">
+
+</script>
+
+<%= javascript_include_tag 'select_list_move', plugin: 'redmine_file_custom_field' %>
+<p>
+  <table class="query-columns">
+    <tr>
+      <td style="padding-left:0">
+        <%= label_tag "available_file_types", l(:description_available_file_types), :style => "margin-left:-50px; overflow-wrap: normal;"%>
+        <br />
+        <%= select_tag 'available_file_types', options_for_select([['application/pdf', 'application/pdf'],['application/png', 'application/png']]), :multiple => true, :size => 10, :style => "width:200px", :ondblclick => "moveOptions(this.form.available_file_types, this.form.selected_file_types);" %>
+      </td>
+      <td class="buttons">
+        <input type="button" value="&#8594;"
+         onclick="moveOptions(this.form.available_file_types, this.form.selected_file_types);" /><br />
+        <input type="button" value="&#8592;"
+         onclick="moveOptions(this.form.selected_file_types, this.form.available_file_types);" />
+      </td>
+      <td>
+        <%= label_tag "selected_file_types", l(:description_selected_file_types), :style => "margin-left:-50px; overflow-wrap: normal;" %>
+        <br />
+        <%= select_tag 'selected_file_types', options_for_select([]), :id => 'selected_file_types', :multiple => true, :size => 10, :style => "width:200px", :ondblclick => "moveOptions(this.form.selected_file_types, this.form.available_file_types);" %>
+      </td>
+      <td class="buttons">
+        <input type="button" id="Ihhh" value="&#8648;" onclick="moveOptionTop(this.form.selected_file_types);" /><br />
+        <input type="button" value="&#8593;" onclick="moveOptionUp(this.form.selected_file_types);" /><br />
+        <input type="button" value="&#8595;" onclick="moveOptionDown(this.form.selected_file_types);" /><br />
+        <input type="button" value="&#8650;" onclick="moveOptionBottom(this.form.selected_file_types);" />
+      </td>
+    </tr>
+  </table>
+</p>
+
+<script type="text/javascript">
+
+
+  $( document ).ready(function() {
+    var atual_value = $("#custom_field_possible_values").val().split("\n");
+
+    $.each(atual_value, function(key, value) {
+      $('#available_file_types').find('option[value="'+value+'"]').remove();
+
+      $('#selected_file_types')
+        .append($('<option>', { value : value })
+        .text(value));
+    });
+
+    $('#custom_field_form').attr('onsubmit', 'selectAllOptions("selected_file_types", "custom_field_possible_values");');
+  });
+</script>
