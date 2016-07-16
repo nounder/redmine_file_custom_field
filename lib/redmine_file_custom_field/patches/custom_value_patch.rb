@@ -30,15 +30,15 @@ module RedmineFileCustomField
       module InstanceMethods
         # TODO: Tried alias_method_chain :value=, :file but didn't work
         def value=(value)
-          if custom_field.field_format == "file"
+          if custom_field && custom_field.field_format == "file"
             if !value.blank?
               if value.is_a?(Attachment)
                 saved_attachments << value
-                value = value.id
+                value = value.id.to_s
               else
                 if (attachment = Attachment.find_by_id(value)) && (!attachment.container_id)
                   saved_attachments << attachment
-                  value = attachment.id
+                  value = attachment.id.to_s
                 else
                   value = nil
                 end
@@ -46,7 +46,7 @@ module RedmineFileCustomField
             end
           end
 
-          write_attribute(:value, value.to_s)
+          write_attribute(:value, value)
         end
 
         def attachment_added(attachment)
