@@ -27,7 +27,7 @@ function selectAllOptions(id, text_area) {
 
   var value = "";
   for (var i = 0; i < options.length; i++) {
-    value = value + options[i].innerHTML + "\n";
+    value = value + options[i].value + "\n";
   }
   $('#'+text_area).val(value);
 }

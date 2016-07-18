@@ -1,0 +1,10 @@
+# English strings go here for Rails i18n
+pt-BR:
+  # my_label: "My label"
+  activerecord:
+    errors:
+      messages:
+        format_invalid: "Formato inválido"
+  label_file: Arquivo
+  description_available_file_types: 'Tipos de arquivos permitidos'
+  description_selected_file_types: 'Tipos de arquivos permitidos selecionados'

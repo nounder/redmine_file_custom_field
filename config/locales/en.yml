@@ -5,3 +5,4 @@ en:
     errors:
       messages:
         format_invalid: "format is invalid"
+  label_file: File
