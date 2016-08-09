@@ -36,8 +36,8 @@ module RedmineFileCustomField
                 saved_attachments << value
                 value = value.id.to_s
               else
-                if (attachment = Attachment.find_by_id(value)) && (!attachment.container_id)
-                  saved_attachments << attachment
+                if (attachment = Attachment.find_by_id(value))
+                  (saved_attachments << attachment) if !attachment.container_id
                   value = attachment.id.to_s
                 else
                   value = nil
