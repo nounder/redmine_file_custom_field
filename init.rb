@@ -8,6 +8,7 @@ Redmine::Plugin.register :redmine_file_custom_field do
 
   require 'redmine_file_custom_field/field_formats/file_format'
   require 'redmine_file_custom_field/content_types'
+  require 'redmine_file_custom_field/hooks/issue_hook'
 
   CustomValue.send(:include, RedmineFileCustomField::Patches::CustomValuePatch) unless CustomValue.included_modules.include?(RedmineFileCustomField::Patches::CustomValuePatch)
   Journal.send(:include, RedmineFileCustomField::Patches::JournalPatch) unless Journal.included_modules.include?(RedmineFileCustomField::Patches::JournalPatch)

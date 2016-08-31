@@ -1,0 +1,61 @@
+<%= javascript_tag do %>
+  $(document).ready(function() {
+    $("#attributes input[type='file']").on('change', function() {
+      console.log(this);
+      function addInputFiles(inputEl) {
+        var clearedFileInput = $(inputEl).clone().val('');
+
+        if ($.ajaxSettings.xhr().upload && inputEl.files) {
+          uploadAndAttachFiles(inputEl.files, inputEl);
+        } else {
+          // alert("Seu browser não possui compatibilidade");
+        }
+      }
+
+      function uploadAndAttachFiles(files, inputEl) {
+        $.each(files, function() {addFile(inputEl, this, true);});
+      }
+
+      function addFile(inputEl, file, eagerUpload) {
+        ajaxUpload(file, 1, inputEl);
+      }
+
+      function ajaxUpload(file, attachmentId, inputEl) {
+        actualUpload(file, attachmentId, inputEl);
+      }
+
+      function actualUpload(file, attachmentId, inputEl) {
+        uploadBlob(file, '<%= file_field_upload_path(format: :js)  %>', attachmentId, {},inputEl);
+      }
+
+      function uploadBlob(blob, uploadUrl, attachmentId, options, inputEl) {
+        uploadUrl = uploadUrl + '?attachment_id=' + attachmentId;
+        if (blob instanceof window.File) {
+          uploadUrl += '&filename=' + encodeURIComponent(blob.name);
+          uploadUrl += '&content_type=' + encodeURIComponent(blob.type);
+        }
+
+        return $.ajax(uploadUrl, {
+          type: 'POST',
+          dataType : 'json',
+          contentType: 'application/octet-stream',
+          beforeSend: function(jqXhr, settings) {
+            settings.data = blob;
+          },
+          data: blob,
+          cache: false,
+          processData: false,
+          success: function (result) {
+            $(inputEl).parent().find("input[type='hidden']").val(result['id']);
+          },
+          error: function (jqxhr, status, errorThrown) {
+            alert("Failure, Unable to recieve content")
+            alert(jqxhr.responseText);
+          }
+        });
+      }
+
+      addInputFiles(this);
+    });
+  });
+<% end %>
