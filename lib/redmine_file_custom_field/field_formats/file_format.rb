@@ -15,6 +15,14 @@ module RedmineFileCustomField
           attachment = custom_field_value.value.blank? ? nil : Attachment.find(value)
         end
 
+        if attachment && attachment.container_id && attachment.container_id != custom_field_value.customized.custom_value_for(custom_field_value.custom_field).id
+          attachment = attachment.dup
+          attachment.container_id = nil
+          attachment.save!
+          custom_field_value.value = attachment.id
+          value = custom_field_value.value
+        end
+
         view.content_tag("span") do
           (view.hidden_field_tag(tag_name, value, options.merge(:id => tag_id)) +
           view.file_field_tag("tmp_#{tag_name}", options.merge(:id => tag_id)) +
