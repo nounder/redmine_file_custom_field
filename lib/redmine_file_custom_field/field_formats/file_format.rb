@@ -74,7 +74,16 @@ module RedmineFileCustomField
       def formatted_custom_value(view, custom_value, html=false)
         custom_value = CustomValue.find_by_customized_id_and_custom_field_id(custom_value.customized.id, custom_value.custom_field.id)
 
-        if custom_value && attachment = custom_value.attachments.find_by_id(custom_value.value)
+        if custom_value && attachment = Attachment.find_by_id(custom_value.value)
+          if attachment.container_id && attachment.container_id != custom_value.id
+            attachment = attachment.dup
+            attachment.container_id = custom_value.id
+            attachment.save!
+
+            custom_value.value = attachment.id
+            custom_value.save!
+          end
+
           if html
             view.link_to_attachment attachment, thumbnails: true
           else
