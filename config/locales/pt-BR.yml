@@ -5,6 +5,8 @@ pt-BR:
     errors:
       messages:
         format_invalid: "Formato inválido"
+        virus_founded: "Vírus foi encontrado"
+        clamd_not_working: "Clamd não está funcionando, por favor contactar o admin"
   label_file: Arquivo
   description_available_file_types: 'Tipos de arquivos permitidos'
   description_selected_file_types: 'Tipos de arquivos permitidos selecionados'

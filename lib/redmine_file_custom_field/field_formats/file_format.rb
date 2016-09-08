@@ -50,6 +50,10 @@ module RedmineFileCustomField
         err = err | validate_content_type(custom_field, attachment)
         err = err | validate_size(custom_field, attachment)
 
+        if Setting.plugin_redmine_file_custom_field[:scan_for_virus]
+          err = err | validate_virus(custom_field, attachment)
+        end
+
         err
       end
 
@@ -69,6 +73,15 @@ module RedmineFileCustomField
         else
           [::I18n.t(:error_attachment_too_big, max_size: number_to_human_size(max_size))]
         end
+      end
+
+      def validate_virus(custom_field, attachment)
+        Ddr::Antivirus.scan(attachment.diskfile)
+        []
+      rescue Ddr::Antivirus::VirusFoundError
+        [::I18n.t('activerecord.errors.messages.virus_founded')]
+      rescue
+        [::I18n.t('activerecord.errors.messages.clamd_not_working')]
       end
 
       def formatted_custom_value(view, custom_value, html=false)
