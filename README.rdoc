@@ -1,3 +1,17 @@
 = redmine_file_custom_field
 
 Description goes here
+
+= Install Clamd
+
+yum install -y clamav clamav-scanner
+
+vim  /etc/clamd.d/scan.conf
+  Comentar Example
+  Descomentar TCPSocket 3310
+  Descomentar TCPAddr 127.0.0.1
+  Rodar como User root
+  systemctl start clamd.scan
+  systemctl enable clamd.scan
+
+ln -s /etc/clamd.d/scan.conf /etc/clamd.conf
