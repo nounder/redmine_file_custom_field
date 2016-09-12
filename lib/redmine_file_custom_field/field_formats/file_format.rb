@@ -50,7 +50,7 @@ module RedmineFileCustomField
         err = err | validate_content_type(custom_field, attachment)
         err = err | validate_size(custom_field, attachment)
 
-        if Setting.plugin_redmine_file_custom_field[:scan_for_virus]
+        if Setting.plugin_redmine_file_custom_field['scan_for_virus']
           err = err | validate_virus(custom_field, attachment)
         end
 
