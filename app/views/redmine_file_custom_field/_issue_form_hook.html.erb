@@ -40,12 +40,14 @@
           dataType : 'json',
           contentType: 'application/octet-stream',
           beforeSend: function(jqXhr, settings) {
+            $('#ajax-indicator').show();
             settings.data = blob;
           },
           data: blob,
           cache: false,
           processData: false,
           success: function (result) {
+            $('#ajax-indicator').hide();
             $(inputEl).parent().find("input[type='hidden']").val(result['id']);
           },
           error: function (jqxhr, status, errorThrown) {
