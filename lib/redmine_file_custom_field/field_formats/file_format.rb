@@ -58,7 +58,7 @@ module RedmineFileCustomField
       end
 
       def validate_content_type(custom_field, attachment)
-        if custom_field.possible_values.blank? || attachment.content_type.in?(custom_field.possible_values)
+        if custom_field.possible_values.blank? || custom_field.possible_values.detect { |e| attachment.disk_filename.ends_with?(".#{e}") }
           []
         else
           [::I18n.t('activerecord.errors.messages.format_invalid')]
