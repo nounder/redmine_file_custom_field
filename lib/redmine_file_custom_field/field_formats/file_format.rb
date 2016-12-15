@@ -76,12 +76,18 @@ module RedmineFileCustomField
       end
 
       def validate_virus(custom_field, attachment)
-        Ddr::Antivirus.scan(attachment.diskfile)
-        []
-      rescue Ddr::Antivirus::VirusFoundError
-        [::I18n.t('activerecord.errors.messages.virus_founded')]
-      rescue
-        [::I18n.t('activerecord.errors.messages.clamd_not_working')]
+        if defined?(Ddr)
+          begin
+            Ddr::Antivirus.scan(attachment.diskfile)
+            []
+          rescue Ddr::Antivirus::VirusFoundError
+            [::I18n.t('activerecord.errors.messages.virus_founded')]
+          rescue
+            [::I18n.t('activerecord.errors.messages.clamd_not_working')]
+          end
+        else
+          []
+        end
       end
 
       def formatted_custom_value(view, custom_value, html=false)
