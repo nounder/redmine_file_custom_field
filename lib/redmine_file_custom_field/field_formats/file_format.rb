@@ -3,43 +3,56 @@ module RedmineFileCustomField
     class FileFormat < Redmine::FieldFormat::Base
       include ActionView::Helpers::NumberHelper
 
+      self.multiple_supported = true
+      self.searchable_supported = true
       self.form_partial = 'custom_fields/formats/file'
       add 'file'
 
       def edit_tag(view, tag_id, tag_name, custom_field_value, options={})
-        if custom_field_value.value.is_a?(Attachment)
-          value = custom_field_value.value.id
-          attachment = custom_field_value.value
+        cv_value = custom_field_value.value
+
+        # TODO: Support single values
+        if cv_value.is_a?(Array)
+          attachments = cv_value
+                          .map { |v| v.to_i > 0 ? Attachment.find(v) : nil }
+                          .compcat
         else
-          value = custom_field_value.value
-          attachment = custom_field_value.value.blank? ? nil : Attachment.find(value)
+          attachments = []
         end
 
-        if attachment && attachment.container_id && attachment.container_id != custom_field_value.customized.custom_value_for(custom_field_value.custom_field).id
-          attachment = attachment.dup
-          attachment.container_id = nil
-          attachment.save!
-          custom_field_value.value = attachment.id
-          value = custom_field_value.value
-        end
+        # if attachment and attachment.container_id \
+        #   and attachment.container_id != custom_field_value.customized.custom_value_for(custom_field_value.custom_field).id
+        #   attachment = attachment.dup
+        #   attachment.container_id = nil
+        #   attachment.save!
+        #   custom_field_value.value = attachment.id
+        #   value = custom_field_value.value
+        # end
 
-        view.content_tag("span") do
-          (view.hidden_field_tag(tag_name, value, options.merge(:id => tag_id)) +
-          view.file_field_tag("tmp_#{tag_name}", options.merge(:id => tag_id)) +
-          if (attachment)
-            view.content_tag("span", id: "tag_id", style: 'display: block;') do
-              view.content_tag("span") do
-                attachment.filename
-              end +
-              view.link_to('&nbsp;'.html_safe, "javascript:$('##{tag_id}').val('');$('#tag_id').hide();void(0);", class: 'remove-upload').html_safe
+        view.content_tag(:span) do
+          view.content_tag(:span) do
+            attachments.each do |attachment|
+              concat content_tag(:span, attachment.filename, class: 'filename')
             end
-          else
-            ""
-          end)
+          end
+
+          view.content_tag(:span, class: 'add_attachment') do
+            view.file_field_tag tag_name,
+                                class: 'file_selector',
+                                multiple: true,
+                                data: {
+                                  max_file_size: Setting.attachment_max_size.to_i.kilobytes,
+                                  max_file_size_message: l(:error_attachment_too_big, :max_size => number_to_human_size(Setting.attachment_max_size.to_i.kilobytes)),
+                                  max_concurrent_uploads: Redmine::Configuration['max_concurrent_ajax_uploads'].to_i,
+                                  upload_path: view.uploads_path(:format => 'js'),
+                                  description_placeholder: l(:label_optional_description)
+                                }
+          end
         end
       end
 
       def validate_single_value(custom_field, value, customized=nil)
+        byebug
         if value.is_a?(String)
           return [] unless attachment = Attachment.find_by_id(value)
         else
