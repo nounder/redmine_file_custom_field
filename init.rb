@@ -12,11 +12,13 @@ Redmine::Plugin.register :redmine_file_custom_field do
 
   settings default: {}, :partial => 'settings/redmine_file_custom_field'
 
-  CustomValue.send(:include, RedmineFileCustomField::Patches::CustomValuePatch) unless CustomValue.included_modules.include?(RedmineFileCustomField::Patches::CustomValuePatch)
-  Journal.send(:include, RedmineFileCustomField::Patches::JournalPatch) unless Journal.included_modules.include?(RedmineFileCustomField::Patches::JournalPatch)
-  Redmine::Acts::Customizable::InstanceMethods.send(:include, RedmineFileCustomField::Patches::CustomizablePatch) unless Redmine::Acts::Customizable::InstanceMethods.included_modules.include?(RedmineFileCustomField::Patches::CustomizablePatch)
-
   if defined?(Ddr)
     Ddr::Antiviruss.canner_adapter = :clamd
   end
+end
+
+ActionDispatch::Reloader.to_prepare do
+  CustomValue.send(:include, RedmineFileCustomField::Patches::CustomValuePatch) unless CustomValue.included_modules.include?(RedmineFileCustomField::Patches::CustomValuePatch)
+  Journal.send(:include, RedmineFileCustomField::Patches::JournalPatch) unless Journal.included_modules.include?(RedmineFileCustomField::Patches::JournalPatch)
+  Redmine::Acts::Customizable::InstanceMethods.send(:include, RedmineFileCustomField::Patches::CustomizablePatch) unless Redmine::Acts::Customizable::InstanceMethods.included_modules.include?(RedmineFileCustomField::Patches::CustomizablePatch)
 end
