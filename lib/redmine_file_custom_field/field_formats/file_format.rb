@@ -9,50 +9,75 @@ module RedmineFileCustomField
       add 'file'
 
       def edit_tag(view, tag_id, tag_name, custom_field_value, options={})
-        cv_value = custom_field_value.value
+        cv_value = custom_field_value.value.to_a
 
         # TODO: Support single values
-        if cv_value.is_a?(Array)
-          attachments = cv_value
+        attachments = cv_value
                           .map { |v| v.to_i > 0 ? Attachment.find(v) : nil }
-                          .compcat
-        else
-          attachments = []
+                          .compact
+
+        attachments.each do |attachment|
+          if attachment and attachment.container_id \
+            and attachment.container_id != custom_field_value.customized.custom_value_for(custom_field_value.custom_field).id
+            attachment = attachment.dup
+            attachment.container_id = nil
+            attachment.save!
+            custom_field_value.value = attachment.id
+          end
         end
 
-        # if attachment and attachment.container_id \
-        #   and attachment.container_id != custom_field_value.customized.custom_value_for(custom_field_value.custom_field).id
-        #   attachment = attachment.dup
-        #   attachment.container_id = nil
-        #   attachment.save!
-        #   custom_field_value.value = attachment.id
-        #   value = custom_field_value.value
-        # end
-
         view.content_tag(:span) do
-          view.content_tag(:span) do
-            attachments.each do |attachment|
-              concat content_tag(:span, attachment.filename, class: 'filename')
-            end
+          attachments.each do |attachment|
+            span_content = view.hidden_field_tag(tag_name, attachment.id) +
+                           view.content_tag(:span, attachment.filename) +
+                           view.link_to('&nbsp;'.html_safe, 'javascript:void(0)',
+                                        onclick: "$(this).parent().remove();",
+                                        class: 'remove-upload').html_safe
+
+            view.concat view.content_tag(:span, span_content, style: 'display: block')
           end
 
-          view.content_tag(:span, class: 'add_attachment') do
-            view.file_field_tag tag_name,
-                                class: 'file_selector',
-                                multiple: true,
-                                data: {
-                                  max_file_size: Setting.attachment_max_size.to_i.kilobytes,
-                                  max_file_size_message: l(:error_attachment_too_big, :max_size => number_to_human_size(Setting.attachment_max_size.to_i.kilobytes)),
-                                  max_concurrent_uploads: Redmine::Configuration['max_concurrent_ajax_uploads'].to_i,
-                                  upload_path: view.uploads_path(:format => 'js'),
-                                  description_placeholder: l(:label_optional_description)
-                                }
+          view.concat view.content_tag(:span,
+            view.hidden_field_tag(tag_name, nil) +
+            view.content_tag(:span, '', style: 'display: block') +
+            view.link_to('&nbsp;'.html_safe, 'javascript:void(0)',
+                         onclick: "$(this).parent().remove();",
+                         style: 'display: none',
+                         class: 'remove-upload').html_safe +
+            view.file_field_tag("dummy_#{tag_name}", onchange: dummy_input_onchange))
+        end
+      end
+
+      def formatted_custom_value(view, custom_value, html=false)
+        ids = custom_value.value.to_a
+        attachments = Attachment.where(id: ids)
+
+        if attachments.any?
+          if html
+            attachments.map { |a| view.link_to_attachment a, thumbnails: true }
+              .join(', ').html_safe
+          else
+            attachments.map(&:filename).join(', ')
           end
         end
       end
 
+      private
+
+      # Javascript to be execute when file is uploaded.
+      # Using hooks injecting this code would be overkill.
+      def dummy_input_onchange
+        # find parent (span) and prepend to it copy of itself
+        "(function($i) {$(document).ajaxSuccess(function() {"\
+        "$i.parent().before("\
+        "$i.parent().clone().find('input[type=file]').remove().end()"\
+        ".find('span').text($i.val()).end())" \
+        ".find('a').show();"\
+        "$i.parent().find('input').val('');"\
+        "}); })($(this));"
+      end
+
       def validate_single_value(custom_field, value, customized=nil)
-        byebug
         if value.is_a?(String)
           return [] unless attachment = Attachment.find_by_id(value)
         else
@@ -100,27 +125,6 @@ module RedmineFileCustomField
           end
         else
           []
-        end
-      end
-
-      def formatted_custom_value(view, custom_value, html=false)
-        custom_value = CustomValue.find_by_customized_id_and_custom_field_id(custom_value.customized.id, custom_value.custom_field.id)
-
-        if custom_value && attachment = Attachment.find_by_id(custom_value.value)
-          if attachment.container_id && attachment.container_id != custom_value.id
-            attachment = attachment.dup
-            attachment.container_id = custom_value.id
-            attachment.save!
-
-            custom_value.value = attachment.id
-            custom_value.save!
-          end
-
-          if html
-            view.link_to_attachment attachment, thumbnails: true
-          else
-            attachment.filename
-          end
         end
       end
     end
