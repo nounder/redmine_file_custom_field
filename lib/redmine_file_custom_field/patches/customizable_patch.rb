@@ -1,3 +1,4 @@
+# coding: utf-8
 module RedmineFileCustomField
   module Patches
     module CustomizablePatch
@@ -6,7 +7,6 @@ module RedmineFileCustomField
         base.send(:include, InstanceMethods)
 
         base.class_eval do
-          unloadable # Send unloadable so it will not be unloaded in developmen
           alias_method_chain :custom_field_values=, :file
 
         end

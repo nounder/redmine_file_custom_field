@@ -7,7 +7,6 @@ module RedmineFileCustomField
 
         # Same as typing in the class
         base.class_eval do
-          unloadable # Send unloadable so it will not be unloaded in developmen
           acts_as_attachable :after_add => :attachment_added, :after_remove => :attachment_removed
 
 

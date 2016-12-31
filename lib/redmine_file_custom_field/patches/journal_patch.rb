@@ -7,8 +7,6 @@ module RedmineFileCustomField
 
         # Same as typing in the class
         base.class_eval do
-          unloadable # Send unloadable so it will not be unloaded in developmen
-
           alias_method_chain :add_custom_value_detail, :file
         end
       end
