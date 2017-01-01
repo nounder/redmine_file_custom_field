@@ -1,21 +1,19 @@
 Redmine::Plugin.register :redmine_file_custom_field do
-  name 'Redmine File Custom Field plugin'
-  author 'Author name'
-  description 'This is a plugin for Redmine'
-  version '0.0.1'
-  url 'http://example.com/path/to/plugin'
-  author_url 'http://example.com/about'
-
-  require 'redmine_file_custom_field/field_formats/file_format'
-  require 'redmine_file_custom_field/content_types'
-  require 'redmine_file_custom_field/hooks/issue_hook'
+  name "Redmine File Custom Field plugin"
+  author "Ralph Gutkowski"
+  description "Provides File format for Custom Fields."
+  version '0.2.0'
+  url 'https://github.com/rgtk/redmine_file_custom_field'
+  author_url 'https://github.com/rgtk'
 
   settings default: {}, :partial => 'settings/redmine_file_custom_field'
-
-  if defined?(Ddr)
-    Ddr::Antiviruss.canner_adapter = :clamd
-  end
 end
+
+require 'redmine_file_custom_field/field_formats/file_format'
+require 'redmine_file_custom_field/content_types'
+require 'redmine_file_custom_field/hooks/issue_hook'
+
+Ddr::Antiviruss.canner_adapter = :clamd if defined?(Ddr)
 
 ActionDispatch::Reloader.to_prepare do
   CustomValue.send(:include, RedmineFileCustomField::Patches::CustomValuePatch) unless CustomValue.included_modules.include?(RedmineFileCustomField::Patches::CustomValuePatch)
