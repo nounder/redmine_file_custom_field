@@ -9,21 +9,25 @@ module RedmineFileCustomField
       add 'file'
 
       def edit_tag(view, tag_id, tag_name, custom_field_value, options={})
+        cf = custom_field_value.custom_field
         value = custom_field_value.value.try(:to_a) || []
 
-        # TODO: Support single values
-        attachments = value
-                        .map { |v| v.to_i > 0 ? Attachment.find(v) : nil }
-                        .compact
+        if cf.multiple?
+          attachments = value
+                          .map { |v| v.to_i > 0 ? Attachment.find(v) : nil }
+                          .compact
 
-        attachments.each do |attachment|
-          if attachment and attachment.container_id \
-            and attachment.container_id != custom_field_value.customized.custom_value_for(custom_field_value.custom_field).id
-            attachment = attachment.dup
-            attachment.container_id = nil
-            attachment.save!
-            custom_field_value.value = attachment.id
+          attachments.each do |attachment|
+            if attachment and attachment.container_id \
+              and attachment.container_id != custom_field_value.customized.custom_value_for(custom_field_value.custom_field).id
+              attachment = attachment.dup
+              attachment.container_id = nil
+              attachment.save!
+              custom_field_value.value = attachment.id
+            end
           end
+        else
+          attachments = []
         end
 
         view.content_tag(:span) do
@@ -44,14 +48,14 @@ module RedmineFileCustomField
                          onclick: "$(this).parent().remove();",
                          style: 'display: none',
                          class: 'remove-upload').html_safe +
-            view.file_field_tag("dummy_#{tag_name}", onchange: dummy_input_onchange))
+            view.file_field_tag("dummy_#{tag_name}", onchange: (dummy_input_onchange if cf.multiple?)))
         end
       end
 
       def formatted_custom_value(view, custom_value, html = false)
         value = custom_value.value
 
-        return '' if value.empty?
+        return '' unless value.present?
 
         attachments = Attachment.where(id: value)
 
