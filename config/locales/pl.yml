@@ -1,0 +1,6 @@
+pl:
+  activerecord:
+    errors:
+      messages:
+        virus_founded: "Znaleziono wirusa"
+        clamd_not_working: "Program Clamd nie działa. Skontaktuj się z administratorem."
