@@ -9,12 +9,12 @@ module RedmineFileCustomField
       add 'file'
 
       def edit_tag(view, tag_id, tag_name, custom_field_value, options={})
-        cv_value = custom_field_value.value.to_a
+        value = custom_field_value.value.try(:to_a) || []
 
         # TODO: Support single values
-        attachments = cv_value
-                          .map { |v| v.to_i > 0 ? Attachment.find(v) : nil }
-                          .compact
+        attachments = value
+                        .map { |v| v.to_i > 0 ? Attachment.find(v) : nil }
+                        .compact
 
         attachments.each do |attachment|
           if attachment and attachment.container_id \
@@ -39,7 +39,7 @@ module RedmineFileCustomField
 
           view.concat view.content_tag(:span,
             view.hidden_field_tag(tag_name, nil) +
-            view.content_tag(:span, '', style: 'display: block') +
+            view.content_tag(:span, '') +
             view.link_to('&nbsp;'.html_safe, 'javascript:void(0)',
                          onclick: "$(this).parent().remove();",
                          style: 'display: none',
@@ -48,13 +48,16 @@ module RedmineFileCustomField
         end
       end
 
-      def formatted_custom_value(view, custom_value, html=false)
-        ids = custom_value.value.to_a
-        attachments = Attachment.where(id: ids)
+      def formatted_custom_value(view, custom_value, html = false)
+        value = custom_value.value
+
+        return '' if value.empty?
+
+        attachments = Attachment.where(id: value)
 
         if attachments.any?
           if html
-            attachments.map { |a| view.link_to_attachment a, thumbnails: true }
+            attachments.map { |a| view.link_to_attachment(a, thumbnails: true) }
               .join(', ').html_safe
           else
             attachments.map(&:filename).join(', ')
@@ -67,14 +70,17 @@ module RedmineFileCustomField
       # Javascript to be execute when file is uploaded.
       # Using hooks injecting this code would be overkill.
       def dummy_input_onchange
-        # find parent (span) and prepend to it copy of itself
-        "(function($i) {$(document).ajaxSuccess(function() {"\
-        "$i.parent().before("\
-        "$i.parent().clone().find('input[type=file]').remove().end()"\
-        ".find('span').text($i.val()).end())" \
-        ".find('a').show();"\
-        "$i.parent().find('input').val('');"\
-        "}); })($(this));"
+        <<END_JS.gsub(/\s+/, '')
+        (function($i) {
+          $(document).ajaxSuccess(function() {
+            $i.parent().before(
+              $i.parent().clone().find('input[type=file]').remove().end()
+                .find('span').text($i[0].files[0].name).end()
+                .find('a').show().end());
+            $i.parent().find('input').val('');
+          });
+        })($(this));
+END_JS
       end
 
       def validate_single_value(custom_field, value, customized=nil)
