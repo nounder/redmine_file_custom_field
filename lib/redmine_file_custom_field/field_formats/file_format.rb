@@ -41,14 +41,16 @@ module RedmineFileCustomField
             view.concat view.content_tag(:span, span_content, style: 'display: block')
           end
 
-          view.concat view.content_tag(:span,
-            view.hidden_field_tag(tag_name, nil) +
-            view.content_tag(:span, '') +
-            view.link_to('&nbsp;'.html_safe, 'javascript:void(0)',
-                         onclick: "$(this).parent().remove();",
-                         style: 'display: none',
-                         class: 'remove-upload').html_safe +
-            view.file_field_tag("dummy_#{tag_name}", onchange: (dummy_input_onchange if cf.multiple?)))
+
+          upload_span = view.hidden_field_tag(tag_name, nil) +
+                        view.content_tag(:span, '') +
+                        view.link_to('&nbsp;'.html_safe, 'javascript:void(0)',
+                                     onclick: "$(this).parent().remove();",
+                                     style: 'display: none',
+                                     class: 'remove-upload').html_safe +
+                        view.file_field_tag("dummy_#{tag_name}", onchange: (dummy_input_onchange if cf.multiple?))
+
+          view.concat view.content_tag(:span, upload_span, style: 'display: block')
         end
       end
 
